@@ -1,9 +1,52 @@
 // Type definitions for MemU API integration
 
+// ===== Core API Types =====
+
 export interface MemorizeParams {
 	resourceUrl: string;
 	modality: 'conversation' | 'document' | 'image' | 'video' | 'audio';
 	user?: Record<string, any>;
+}
+
+// ===== n8n Node Property Types =====
+
+export interface NodeCredentials {
+	memUCloudApi?: {
+		apiKey: string;
+		baseUrl: string;
+	};
+	memUSelfHostedApi?: {
+		baseUrl: string;
+		authMethod: 'apiKey' | 'none';
+		apiKey?: string;
+	};
+}
+
+export interface NodePropertyOptions {
+	name: string;
+	value: string;
+	description?: string;
+}
+
+export interface ValidationResult {
+	isValid: boolean;
+	errors: string[];
+}
+
+// ===== Error Handling Types =====
+
+export interface MemUError {
+	code: string;
+	message: string;
+	details?: any;
+	statusCode?: number;
+}
+
+export interface RetryConfig {
+	maxRetries: number;
+	baseDelay: number;
+	maxDelay: number;
+	retryCondition: (error: any) => boolean;
 }
 
 export interface MemorizeResponse {
@@ -130,4 +173,56 @@ export interface ItemOperationResponse {
 	success: boolean;
 	item?: MemoryItemData;
 	message?: string;
+}
+
+// ===== Input Validation Types =====
+
+export interface InputValidationError {
+	field: string;
+	message: string;
+	value?: any;
+}
+
+export interface BatchProcessingResult<T> {
+	successful: T[];
+	failed: Array<{
+		input: any;
+		error: string;
+	}>;
+	totalProcessed: number;
+}
+
+// ===== n8n Integration Types =====
+
+export interface N8nNodeInput {
+	resourceSource?: 'input' | 'manual';
+	resourceUrl?: string;
+	resourceUrlField?: string;
+	modality?: string;
+	querySource?: 'input' | 'manual';
+	queryText?: string;
+	queryField?: string;
+	method?: 'rag' | 'llm';
+	userScoping?: Record<string, any>;
+	filters?: Record<string, any>;
+}
+
+export interface N8nNodeOutput {
+	json: Record<string, any>;
+	binary?: Record<string, any>;
+}
+
+// ===== Configuration Types =====
+
+export interface MemUClientConfig {
+	baseUrl: string;
+	apiKey?: string;
+	timeout?: number;
+	retryConfig?: RetryConfig;
+}
+
+export interface ConnectionPoolConfig {
+	maxConnections: number;
+	keepAlive: boolean;
+	timeout: number;
 }
