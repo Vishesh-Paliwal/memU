@@ -1,17 +1,23 @@
 {
   "name": "n8n-nodes-memu",
   "version": "1.0.0",
-  "description": "n8n nodes for MemU agentic memory integration",
+  "description": "n8n community nodes for MemU - integrate agentic memory capabilities into your n8n workflows. Memorize, retrieve, and manage multimodal memory data from conversations, documents, images, videos, and audio.",
   "keywords": [
     "n8n-community-node-package",
     "n8n",
     "memu",
     "memory",
     "ai",
-    "agent"
+    "agent",
+    "llm",
+    "rag",
+    "retrieval",
+    "multimodal",
+    "automation",
+    "workflow"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/memu-ai/n8n-nodes-memu",
+  "homepage": "https://github.com/memu-ai/n8n-nodes-memu#readme",
   "author": {
     "name": "MemU Team",
     "email": "support@memu.so"
@@ -20,20 +26,29 @@
     "type": "git",
     "url": "git+https://github.com/memu-ai/n8n-nodes-memu.git"
   },
+  "bugs": {
+    "url": "https://github.com/memu-ai/n8n-nodes-memu/issues"
+  },
   "engines": {
     "node": ">=18.10",
-    "pnpm": ">=7.18"
+    "pnpm": ">=9.0"
   },
-  "packageManager": "pnpm@8.6.2",
+  "packageManager": "pnpm@9.1.0",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "build": "tsc && gulp build:icons",
+    "build:prod": "npm run clean && npm run build",
+    "clean": "rimraf dist",
     "dev": "tsc --watch",
     "format": "prettier nodes credentials --write",
+    "format:check": "prettier nodes credentials --check",
     "lint": "eslint nodes/**/*.ts credentials/**/*.ts",
     "lintfix": "eslint nodes/**/*.ts credentials/**/*.ts --fix",
-    "prepublishOnly": "npm run build && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build:prod && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json",
+    "test": "echo \"No tests configured yet\" && exit 0"
   },
   "files": [
     "dist"
@@ -61,6 +76,7 @@
     "gulp": "^4.0.2",
     "n8n-workflow": "^1.2.0",
     "prettier": "^2.8.8",
+    "rimraf": "^5.0.0",
     "typescript": "^5.1.3"
   },
   "dependencies": {

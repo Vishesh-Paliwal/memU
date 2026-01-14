@@ -1,0 +1,45 @@
+# Source files
+nodes/
+credentials/
+
+# Config files
+.eslintrc.js
+.eslintrc.prepublish.js
+.prettierrc.js
+tsconfig.json
+gulpfile.js
+
+# Development files
+*.ts
+!*.d.ts
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+__tests__/
+coverage/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Package manager files
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Git files
+.git/
+.gitignore
+
+# Build artifacts (keep dist/)
+*.log
+*.tgz

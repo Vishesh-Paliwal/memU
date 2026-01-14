@@ -1,6 +1,27 @@
 <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
   <rect width="60" height="60" rx="12" fill="#6366F1"/>
-  <path d="M15 20h30v4H15v-4zm0 8h30v4H15v-4zm0 8h20v4H15v-4z" fill="white"/>
-  <circle cx="42" cy="40" r="6" fill="#F59E0B"/>
-  <path d="M39 37l3 3 6-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Brain/Memory icon representing MemU -->
+  <g transform="translate(12, 12)">
+    <!-- Left hemisphere -->
+    <path d="M18 6C12.5 6 8 10.5 8 16C8 18.5 9 20.8 10.5 22.5C9.5 23.5 9 25 9 26.5C9 29.5 11.5 32 14.5 32H18V6Z" fill="white" fill-opacity="0.9"/>
+    
+    <!-- Right hemisphere -->
+    <path d="M18 6C23.5 6 28 10.5 28 16C28 18.5 27 20.8 25.5 22.5C26.5 23.5 27 25 27 26.5C27 29.5 24.5 32 21.5 32H18V6Z" fill="white" fill-opacity="0.9"/>
+    
+    <!-- Neural connections -->
+    <circle cx="14" cy="14" r="2" fill="#6366F1"/>
+    <circle cx="22" cy="14" r="2" fill="#6366F1"/>
+    <circle cx="18" cy="20" r="2" fill="#6366F1"/>
+    <circle cx="13" cy="24" r="1.5" fill="#6366F1"/>
+    <circle cx="23" cy="24" r="1.5" fill="#6366F1"/>
+    
+    <!-- Connection lines -->
+    <path d="M14 14L18 20M22 14L18 20M13 24L18 20M23 24L18 20" stroke="#6366F1" stroke-width="1" stroke-opacity="0.6"/>
+  </g>
+  
+  <!-- Memory indicator dot -->
+  <circle cx="46" cy="46" r="6" fill="#10B981"/>
+  <path d="M43 46l2 2 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
