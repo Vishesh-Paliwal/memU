@@ -48,35 +48,6 @@ export interface TaskStatusResponse {
 	error?: string;
 }
 
-// ===== n8n Node Property Types =====
-
-export interface NodeCredentials {
-	memUCloudApi?: {
-		apiKey: string;
-		baseUrl: string;
-	};
-}
-
-export interface NodePropertyOptions {
-	name: string;
-	value: string;
-	description?: string;
-}
-
-export interface ValidationResult {
-	isValid: boolean;
-	errors: string[];
-}
-
-// ===== Error Handling Types =====
-
-export interface MemUError {
-	code: string;
-	message: string;
-	details?: any;
-	statusCode?: number;
-}
-
 export interface RetryConfig {
 	maxRetries: number;
 	baseDelay: number;
@@ -120,42 +91,6 @@ export interface ListCategoriesResponse {
 	}>;
 }
 
-export interface ResourceData {
-	id: string;
-	url: string;
-	modality: string;
-	local_path?: string;
-	caption?: string;
-	created_at: string;
-	updated_at: string;
-}
-
-export interface MemoryItemData {
-	id: string;
-	resource_id: string;
-	memory_type: string;
-	summary: string;
-	created_at: string;
-	updated_at: string;
-}
-
-export interface CategoryData {
-	id: string;
-	name: string;
-	description?: string;
-	summary?: string;
-	created_at: string;
-	updated_at: string;
-}
-
-export interface RelationData {
-	id: string;
-	source_id: string;
-	target_id: string;
-	relation_type: string;
-	created_at: string;
-}
-
 export interface QueryMessage {
 	role: string;
 	content: {
@@ -185,43 +120,6 @@ export interface ResourceResult {
 	score?: number;
 }
 
-// ===== Input Validation Types =====
-
-export interface InputValidationError {
-	field: string;
-	message: string;
-	value?: any;
-}
-
-export interface BatchProcessingResult<T> {
-	successful: T[];
-	failed: Array<{
-		input: any;
-		error: string;
-	}>;
-	totalProcessed: number;
-}
-
-// ===== n8n Integration Types =====
-
-export interface N8nNodeInput {
-	resourceSource?: 'input' | 'manual';
-	resourceUrl?: string;
-	resourceUrlField?: string;
-	modality?: string;
-	querySource?: 'input' | 'manual';
-	queryText?: string;
-	queryField?: string;
-	method?: 'rag' | 'llm';
-	userScoping?: Record<string, any>;
-	filters?: Record<string, any>;
-}
-
-export interface N8nNodeOutput {
-	json: Record<string, any>;
-	binary?: Record<string, any>;
-}
-
 // ===== Configuration Types =====
 
 export interface MemUClientConfig {
@@ -229,10 +127,4 @@ export interface MemUClientConfig {
 	apiKey?: string;
 	timeout?: number;
 	retryConfig?: RetryConfig;
-}
-
-export interface ConnectionPoolConfig {
-	maxConnections: number;
-	keepAlive: boolean;
-	timeout: number;
 }

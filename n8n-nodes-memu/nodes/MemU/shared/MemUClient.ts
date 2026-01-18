@@ -44,7 +44,6 @@ export class MemUClient {
 			if (params.session_date) payload.session_date = params.session_date;
 
 			const response: AxiosResponse<MemorizeResponse> = await this.httpClient.post(endpoint, payload);
-			// Explicitly return response.data 
 			return response.data;
 		});
 	}
