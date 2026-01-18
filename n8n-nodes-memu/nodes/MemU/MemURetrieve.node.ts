@@ -33,11 +33,7 @@ export class MemURetrieve implements INodeType {
 		credentials: [
 			{
 				name: 'memUCloudApi',
-				required: false,
-			},
-			{
-				name: 'memUSelfHostedApi',
-				required: false,
+				required: true,
 			},
 		],
 		properties: [

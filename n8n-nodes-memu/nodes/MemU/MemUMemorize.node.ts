@@ -81,11 +81,7 @@ export class MemUMemorize implements INodeType {
 		credentials: [
 			{
 				name: 'memUCloudApi',
-				required: false,
-			},
-			{
-				name: 'memUSelfHostedApi',
-				required: false,
+				required: true,
 			},
 		],
 		properties: [
