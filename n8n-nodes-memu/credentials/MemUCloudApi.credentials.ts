@@ -54,23 +54,14 @@ export class MemUCloudApi implements ICredentialType {
 		},
 	};
 
-	// Test the connection by calling the health endpoint
+	// Test the connection - just verify we can reach the API
+	// Note: MemU Cloud may not have a dedicated health endpoint
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: '={{$credentials.baseUrl}}',
-			url: '/health',
+			url: '/',
 			method: 'GET',
 			timeout: 10000,
 		},
-		rules: [
-			{
-				type: 'responseSuccessBody',
-				properties: {
-					key: 'status',
-					value: 'ok',
-					message: 'Connection test successful! MemU Cloud API is accessible.',
-				},
-			},
-		],
 	};
 }

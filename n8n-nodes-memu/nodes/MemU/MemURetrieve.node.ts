@@ -10,11 +10,8 @@ import {
 import { MemUClient } from './shared/MemUClient';
 import { RetrieveParams, QueryMessage } from './shared/types';
 import {
-	extractQueryFromInput,
-	validateInputParameters,
 	handleMemUError,
 	transformMemUResponse,
-	formatContextMessages,
 	batchProcessInputData,
 	normalizeTextInput,
 } from './shared/utils';
@@ -26,8 +23,8 @@ export class MemURetrieve implements INodeType {
 		icon: 'file:memu.svg',
 		group: ['transform'],
 		version: 1,
-		subtitle: '={{$parameter["querySource"] === "manual" ? $parameter["method"] + " retrieval" : "From Input: " + $parameter["method"]}}',
-		description: 'Query and retrieve relevant memories from MemU',
+		subtitle: '={{$parameter["querySource"] === "manual" ? "Manual Query" : "From Input"}}',
+		description: 'Query and retrieve relevant memories from MemU using semantic search',
 		defaults: {
 			name: 'MemU Retrieve',
 		},
@@ -63,8 +60,8 @@ export class MemURetrieve implements INodeType {
 					show: { querySource: ['manual'] },
 				},
 				default: '',
-				placeholder: 'What are the user preferences?',
-				description: 'Query to search for in memory',
+				placeholder: 'What sports does the user enjoy?',
+				description: 'Natural language query to search memories',
 				required: true,
 			},
 			{
@@ -79,23 +76,41 @@ export class MemURetrieve implements INodeType {
 				required: true,
 			},
 			{
-				displayName: 'Retrieval Method',
-				name: 'method',
+				displayName: 'User ID',
+				name: 'userId',
+				type: 'string',
+				default: '',
+				placeholder: 'user_123',
+				description: 'Unique identifier for the user (required)',
+				required: true,
+			},
+			{
+				displayName: 'Agent ID',
+				name: 'agentId',
+				type: 'string',
+				default: '',
+				placeholder: 'agent_456',
+				description: 'Unique identifier for the AI agent (required)',
+				required: true,
+			},
+			{
+				displayName: 'Query Format',
+				name: 'queryFormat',
 				type: 'options',
 				options: [
 					{
-						name: 'RAG (Fast)',
-						value: 'rag',
-						description: 'Fast embedding-based search with similarity scores',
+						name: 'Simple String',
+						value: 'string',
+						description: 'Send query as a simple string',
 					},
 					{
-						name: 'LLM (Deep)',
-						value: 'llm',
-						description: 'Deep semantic understanding using LLM reasoning',
+						name: 'Message List (with Query Rewriting)',
+						value: 'messages',
+						description: 'Send as message list for context-aware query rewriting',
 					},
 				],
-				default: 'rag',
-				description: 'Method for retrieving memories',
+				default: 'string',
+				description: 'Format for sending the query. Message list enables automatic query rewriting based on conversation context.',
 			},
 			{
 				displayName: 'Context Messages',
@@ -103,6 +118,9 @@ export class MemURetrieve implements INodeType {
 				type: 'fixedCollection',
 				typeOptions: {
 					multipleValues: true,
+				},
+				displayOptions: {
+					show: { queryFormat: ['messages'] },
 				},
 				default: { messages: [] },
 				options: [
@@ -117,7 +135,6 @@ export class MemURetrieve implements INodeType {
 								options: [
 									{ name: 'User', value: 'user' },
 									{ name: 'Assistant', value: 'assistant' },
-									{ name: 'System', value: 'system' },
 								],
 								default: 'user',
 								description: 'Role of the message sender',
@@ -133,52 +150,7 @@ export class MemURetrieve implements INodeType {
 						],
 					},
 				],
-				description: 'Previous conversation context for better retrieval',
-			},
-			{
-				displayName: 'Filters',
-				name: 'filters',
-				type: 'collection',
-				placeholder: 'Add Filter',
-				default: {},
-				options: [
-					{
-						displayName: 'User ID',
-						name: 'user_id',
-						type: 'string',
-						default: '',
-						description: 'Filter by specific user ID',
-					},
-					{
-						displayName: 'Agent ID',
-						name: 'agent_id',
-						type: 'string',
-						default: '',
-						description: 'Filter by specific agent ID',
-					},
-					{
-						displayName: 'Session ID',
-						name: 'session_id',
-						type: 'string',
-						default: '',
-						description: 'Filter by specific session ID',
-					},
-					{
-						displayName: 'Memory Type',
-						name: 'memory_type',
-						type: 'options',
-						options: [
-							{ name: 'Behavior', value: 'behavior' },
-							{ name: 'Event', value: 'event' },
-							{ name: 'Knowledge', value: 'knowledge' },
-							{ name: 'Profile', value: 'profile' },
-							{ name: 'Skill', value: 'skill' },
-						],
-						default: 'behavior',
-						description: 'Filter by memory type',
-					},
-				],
-				description: 'Filters to limit retrieval scope',
+				description: 'Previous conversation context for query rewriting. The last message is used as the query.',
 			},
 			{
 				displayName: 'Advanced Options',
@@ -188,25 +160,18 @@ export class MemURetrieve implements INodeType {
 				default: {},
 				options: [
 					{
-						displayName: 'Timeout (Seconds)',
+						displayName: 'Request Timeout (Seconds)',
 						name: 'timeout',
 						type: 'number',
 						default: 30,
-						description: 'Request timeout in seconds',
+						description: 'HTTP request timeout in seconds',
 					},
 					{
-						displayName: 'Whether to Continue on Error',
+						displayName: 'Continue on Error',
 						name: 'continueOnError',
 						type: 'boolean',
 						default: false,
 						description: 'Whether to continue processing other items if one fails',
-					},
-					{
-						displayName: 'Whether to Include Context in Query',
-						name: 'includeContextInQuery',
-						type: 'boolean',
-						default: true,
-						description: 'Whether to include context messages in the query for better results',
 					},
 				],
 			},
@@ -216,19 +181,34 @@ export class MemURetrieve implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const querySource = this.getNodeParameter('querySource', 0) as string;
-		const method = this.getNodeParameter('method', 0) as string;
-		const contextMessages = this.getNodeParameter('contextMessages', 0, { messages: [] }) as { messages: Array<{ role: string; content: string }> };
-		const filters = this.getNodeParameter('filters', 0, {}) as Record<string, any>;
+		const queryFormat = this.getNodeParameter('queryFormat', 0) as string;
+		const userId = this.getNodeParameter('userId', 0) as string;
+		const agentId = this.getNodeParameter('agentId', 0) as string;
 		const advancedOptions = this.getNodeParameter('advancedOptions', 0, {}) as Record<string, any>;
 
+		// Validate required fields
+		if (!userId) {
+			throw new NodeOperationError(this.getNode(), 'User ID is required');
+		}
+		if (!agentId) {
+			throw new NodeOperationError(this.getNode(), 'Agent ID is required');
+		}
+
 		// Get credentials
-		const credentials = await this.getCredentials('memUCloudApi') || 
-						   await this.getCredentials('memUSelfHostedApi');
-		
+		let credentials;
+		try {
+			credentials = await this.getCredentials('memUCloudApi');
+		} catch {
+			throw new NodeOperationError(
+				this.getNode(),
+				'MemU Cloud API credentials are required.',
+			);
+		}
+
 		if (!credentials) {
 			throw new NodeOperationError(
 				this.getNode(),
-				'No MemU credentials configured. Please add either MemU Cloud API or MemU Self-hosted API credentials.',
+				'No MemU credentials configured. Please add MemU Cloud API credentials.',
 			);
 		}
 
@@ -250,53 +230,48 @@ export class MemURetrieve implements INodeType {
 					queryText = item.json[queryField] as string;
 				}
 
-				// Normalize and validate query text
+				// Normalize query text
 				queryText = normalizeTextInput(queryText);
 
-				// Validate input parameters
-				const validationResult = validateInputParameters({
-					query: queryText,
-					method,
-					operation: 'retrieve',
-				});
-
-				if (!validationResult.isValid) {
+				if (!queryText) {
 					throw new NodeOperationError(
 						this.getNode(),
-						`Validation failed: ${validationResult.errors.join(', ')}`,
+						'Query text is required',
 					);
 				}
 
-				// Prepare query messages
-				const queries: QueryMessage[] = [];
+				// Prepare query - either as string or message list
+				let query: string | QueryMessage[];
 
-				// Add context messages if provided and enabled
-				if (advancedOptions.includeContextInQuery !== false && contextMessages.messages?.length > 0) {
-					const formattedContextMessages = formatContextMessages(contextMessages.messages);
-					queries.push(...formattedContextMessages);
-				}
+				if (queryFormat === 'messages') {
+					const contextMessages = this.getNodeParameter('contextMessages', index, { messages: [] }) as {
+						messages: Array<{ role: string; content: string }>
+					};
 
-				// Add the main query
-				queries.push({
-					role: 'user',
-					content: {
-						text: queryText,
-					},
-				});
-
-				// Clean filters (remove empty values)
-				const cleanFilters: Record<string, any> = {};
-				Object.entries(filters).forEach(([key, value]) => {
-					if (value !== undefined && value !== null && value !== '') {
-						cleanFilters[key] = value;
+					// Build message list with context + query
+					query = [];
+					if (contextMessages.messages?.length > 0) {
+						for (const msg of contextMessages.messages) {
+							query.push({
+								role: msg.role as 'user' | 'assistant',
+								content: { text: msg.content },
+							});
+						}
 					}
-				});
+					// Add the main query as the last message
+					query.push({
+						role: 'user',
+						content: { text: queryText },
+					});
+				} else {
+					query = queryText;
+				}
 
 				// Prepare retrieve parameters
 				const retrieveParams: RetrieveParams = {
-					queries,
-					method: method as 'rag' | 'llm',
-					where: Object.keys(cleanFilters).length > 0 ? cleanFilters : undefined,
+					user_id: userId,
+					agent_id: agentId,
+					query,
 				};
 
 				// Call MemU API
@@ -307,7 +282,7 @@ export class MemURetrieve implements INodeType {
 			},
 			{
 				continueOnError: advancedOptions.continueOnError || false,
-				maxConcurrency: 3, // Limit concurrent requests to avoid overwhelming the API
+				maxConcurrency: 3,
 			},
 		);
 
@@ -318,7 +293,6 @@ export class MemURetrieve implements INodeType {
 			if (result.success && result.result) {
 				outputData.push(result.result);
 			} else if (result.error) {
-				// Create error output
 				const errorOutput = handleMemUError(
 					new Error(result.error),
 					result.originalData,

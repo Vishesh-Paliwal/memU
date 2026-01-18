@@ -2,10 +2,50 @@
 
 // ===== Core API Types =====
 
+/**
+ * Conversation message format for MemU Cloud API
+ * Based on: https://memu.pro/docs#platform-apis
+ */
+export interface ConversationMessage {
+	role: 'user' | 'assistant';
+	content: string;
+	name?: string;
+	created_at?: string;
+}
+
+/**
+ * Parameters for Cloud API memorize endpoint
+ * POST /api/v3/memory/memorize
+ */
 export interface MemorizeParams {
-	resourceUrl: string;
-	modality: 'conversation' | 'document' | 'image' | 'video' | 'audio';
-	user?: Record<string, any>;
+	// Cloud API fields
+	conversation: ConversationMessage[];
+	user_id: string;
+	agent_id: string;
+	user_name?: string;
+	agent_name?: string;
+	session_date?: string;
+}
+
+/**
+ * Response from memorize endpoint
+ */
+export interface MemorizeResponse {
+	task_id: string;
+	status: 'PENDING' | 'PROCESSING' | 'SUCCESS' | 'FAILED';
+	message?: string;
+}
+
+/**
+ * Task status response
+ * GET /api/v3/memory/memorize/status/{task_id}
+ */
+export interface TaskStatusResponse {
+	task_id: string;
+	status: 'PENDING' | 'PROCESSING' | 'SUCCESS' | 'FAILED';
+	created_at?: string;
+	completed_at?: string;
+	error?: string;
 }
 
 // ===== n8n Node Property Types =====
@@ -14,11 +54,6 @@ export interface NodeCredentials {
 	memUCloudApi?: {
 		apiKey: string;
 		baseUrl: string;
-	};
-	memUSelfHostedApi?: {
-		baseUrl: string;
-		authMethod: 'apiKey' | 'none';
-		apiKey?: string;
 	};
 }
 
@@ -49,28 +84,40 @@ export interface RetryConfig {
 	retryCondition: (error: any) => boolean;
 }
 
-export interface MemorizeResponse {
-	resource?: ResourceData;
-	resources?: ResourceData[];
-	items: MemoryItemData[];
-	categories: CategoryData[];
-	relations: RelationData[];
-}
-
+/**
+ * Parameters for retrieve endpoint
+ * POST /api/v3/memory/retrieve
+ */
 export interface RetrieveParams {
-	queries: QueryMessage[];
-	where?: Record<string, any>;
-	method?: 'rag' | 'llm';
+	user_id: string;
+	agent_id: string;
+	query: string | QueryMessage[];
 }
 
 export interface RetrieveResponse {
-	needs_retrieval: boolean;
-	original_query: string;
-	rewritten_query: string;
-	next_step_query?: string;
+	rewritten_query?: string;
 	categories: CategoryResult[];
 	items: MemoryItemResult[];
 	resources: ResourceResult[];
+}
+
+/**
+ * Parameters for list categories endpoint
+ * POST /api/v3/memory/categories
+ */
+export interface ListCategoriesParams {
+	user_id: string;
+	agent_id: string;
+}
+
+export interface ListCategoriesResponse {
+	status: string;
+	categories: Array<{
+		id: string;
+		name: string;
+		description?: string;
+		memory_count: number;
+	}>;
 }
 
 export interface ResourceData {
@@ -136,43 +183,6 @@ export interface ResourceResult {
 	modality: string;
 	caption?: string;
 	score?: number;
-}
-
-export interface ListItemsParams {
-	listType: 'items' | 'categories';
-	userFilters?: Record<string, any>;
-	limit?: number;
-	includeEmpty?: boolean;
-}
-
-export interface ListItemsResponse {
-	items?: MemoryItemData[];
-	categories?: CategoryData[];
-	total_count: number;
-}
-
-export interface CreateItemParams {
-	memory_type: 'behavior' | 'event' | 'knowledge' | 'profile' | 'skill';
-	content: string;
-	categories?: string[];
-	user?: Record<string, any>;
-}
-
-export interface UpdateItemParams {
-	id: string;
-	memory_type?: 'behavior' | 'event' | 'knowledge' | 'profile' | 'skill';
-	content?: string;
-	categories?: string[];
-}
-
-export interface DeleteItemParams {
-	id: string;
-}
-
-export interface ItemOperationResponse {
-	success: boolean;
-	item?: MemoryItemData;
-	message?: string;
 }
 
 // ===== Input Validation Types =====

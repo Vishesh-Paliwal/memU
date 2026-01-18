@@ -56,16 +56,12 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/MemUCloudApi.credentials.js",
-      "dist/credentials/MemUSelfHostedApi.credentials.js"
+      "dist/credentials/MemUCloudApi.credentials.js"
     ],
     "nodes": [
       "dist/nodes/MemU/MemUMemorize.node.js",
       "dist/nodes/MemU/MemURetrieve.node.js",
-      "dist/nodes/MemU/MemUListItems.node.js",
-      "dist/nodes/MemU/MemUCreateItem.node.js",
-      "dist/nodes/MemU/MemUUpdateItem.node.js",
-      "dist/nodes/MemU/MemUDeleteItem.node.js"
+      "dist/nodes/MemU/MemUListCategories.node.js"
     ]
   },
   "devDependencies": {
