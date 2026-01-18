@@ -76,11 +76,7 @@ class MemUMemorize {
             credentials: [
                 {
                     name: 'memUCloudApi',
-                    required: false,
-                },
-                {
-                    name: 'memUSelfHostedApi',
-                    required: false,
+                    required: true,
                 },
             ],
             properties: [

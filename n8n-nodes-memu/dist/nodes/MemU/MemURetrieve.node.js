@@ -22,11 +22,7 @@ class MemURetrieve {
             credentials: [
                 {
                     name: 'memUCloudApi',
-                    required: false,
-                },
-                {
-                    name: 'memUSelfHostedApi',
-                    required: false,
+                    required: true,
                 },
             ],
             properties: [
